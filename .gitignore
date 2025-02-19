@@ -1,0 +1,19 @@
+# Archivos de modelos y checkpoints
+*.pt
+*.pth
+*.pkl
+*.joblib
+*.yaml
+
+# Archivos y carpetas propias de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Checkpoints de notebooks
+.ipynb_checkpoints/
+
+# Archivos del sistema (macOS, Windows, etc.)
+.DS_Store
+Thumbs.db
