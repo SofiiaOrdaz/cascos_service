@@ -17,38 +17,53 @@ Servicio para la detección de cascos en imágenes utilizando un modelo YOLOv8 p
 
 ## 🎯 Descripción del Proyecto
 
-Este proyecto implementa un sistema para detectar cascos de seguridad en imágenes estáticas. Utiliza un modelo [YOLOv8](https://ultralytics.com/) preentrenado (`hemletYoloV8_100epochs.pt`).
+Este proyecto implementa un sistema para detectar cascos de seguridad en imágenes estáticas. Utiliza un modelo [YOLOv8](https://ultralytics.com/) preentrenado (`hemletYoloV8_100epochs.pt`) alojado en la carpeta `data/models`.
 
-Aunque el `README` inicial menciona herramientas para procesar video e integrar Kafka, la implementación actual se centra principalmente en el análisis de imágenes individuales.
+La lógica principal del servicio reside en el paquete `src/cascos_service`.
 
 ## 📂 Estructura del Repositorio
 
-```bash
+```txt
 cascos_service/
-├── data/
-│   ├── images/       # 🖼️ Imágenes de prueba (ej: casco4.jpg)
-│   ├── models/       # 🧠 Modelos preentrenados (ej: hemletYoloV8_100epochs.pt)
-│   └── video/        # 🎥 (Potencialmente para videos)
-├── notebooks/
-│   └── CASCOS.ipynb  # 📓 Notebook explicativo paso a paso
-├── libs/             # 🧩 (Potencialmente para módulos auxiliares como Kafka)
-├── scripts/          # 📜 (Potencialmente para scripts de video/demo)
-├── main.py           # ▶️ Script principal para detección en imágenes
-├── main_apple.py     # 🍏 Script optimizado para Apple MPS
-├── main_demo.py      # ✨ Script de demostración simplificado
-├── test.py           # ✔️ Script para pruebas básicas (carga de modelo)
-└── README.md         # 📄 Esta documentación
+│
+├── .gitignore            # ⚙️ Archivos ignorados por Git
+├── data/                 # 📊 Datos (modelos, imágenes, etc.)
+│   ├── images/
+│   │   └── casco4.jpg
+│   └── models/
+│       └── hemletYoloV8_100epochs.pt
+├── notebooks/            # 📓 Notebooks para experimentación
+│   └── CASCOS.ipynb
+├── src/                  # 🐍 Código fuente del paquete
+│   └── cascos_service/   # 📦 Paquete Python principal
+│       ├── __init__.py
+│       ├── core/         # ✨ Lógica central (detección)
+│       │   ├── __init__.py
+│       │   └── detection.py
+│       ├── config/       # ⚙️ Configuración (rutas)
+│       │   ├── __init__.py
+│       │   └── settings.py
+│       ├── utils/        # 🛠️ Utilidades (visualización)
+│       │   ├── __init__.py
+│       │   └── visualization.py
+│       └── cli.py        # ▶️ Punto de entrada (línea de comandos)
+├── tests/                # ✔️ Pruebas (pytest)
+│   ├── __init__.py
+│   └── test_detection.py
+├── requirements.txt      # 📦 Dependencias Python
+└── README.md             # 📄 Esta documentación
 ```
 
-- **`data/`**: Almacena los datos necesarios.
-  - `images/`: Contiene las imágenes a procesar.
-  - `models/`: Guarda los archivos del modelo YOLOv8 entrenado.
-- **`notebooks/`**: Cuadernos Jupyter para exploración y explicación.
-  - `CASCOS.ipynb`: Demuestra el proceso de detección.
-- **`main.py`**: Ejecuta la detección en una imagen, muestra el resultado y la información detallada.
-- **`main_apple.py`**: Variante de `main.py` que intenta usar la GPU de Apple (MPS).
-- **`main_demo.py`**: Versión simplificada para una demostración visual rápida.
-- **`test.py`**: Script básico para verificar la carga del modelo.
+- **`data/`**: Almacena datos como imágenes y modelos.
+- **`notebooks/`**: Contiene cuadernos Jupyter para análisis y demostraciones.
+- **`src/cascos_service/`**: El corazón del proyecto, organizado como un paquete Python instalable.
+  - `core/`: Módulos con la lógica principal (ej: `detection.py`).
+  - `config/`: Gestión de la configuración (ej: `settings.py` con rutas).
+  - `utils/`: Funciones de utilidad (ej: `visualization.py`).
+  - `cli.py`: Script para interactuar con el servicio desde la línea de comandos.
+- **`tests/`**: Pruebas automatizadas (usando `pytest`).
+- **`requirements.txt`**: Lista de librerías Python necesarias.
+- **`.gitignore`**: Especifica qué archivos no deben incluirse en Git.
 
 ## 🚀 Instalación
 
@@ -59,51 +74,63 @@ cascos_service/
     cd cascos_service
     ```
 
-2. **Instalar dependencias:**
+2. **Crear entorno virtual e instalar dependencias:**
     Se recomienda usar un entorno virtual.
 
     ```bash
-    # Crear entorno virtual (opcional pero recomendado)
+    # Crear entorno virtual
     python -m venv venv
-    source venv/bin/activate  # En Windows: venv\Scripts\activate
+    # Activar entorno
+    # Windows
+    .\venv\Scripts\activate
+    # macOS/Linux
+    source venv/bin/activate
 
-    # Instalar librerías
-    pip install ultralytics matplotlib opencv-python torch
+    # Instalar librerías desde requirements.txt
+    pip install -r requirements.txt
     ```
 
-    *Nota: `opencv-python` es necesario para algunas funcionalidades de `ultralytics` y `matplotlib` para mostrar imágenes.*
-    *Nota: `torch` es necesario si se usa `main_apple.py` o para asegurar compatibilidad con `ultralytics`.*
+    *Nota: Si planeas ejecutar las pruebas, instala también `pytest`: `pip install pytest`*
 
 ## ▶️ Uso
 
-Puedes ejecutar los diferentes scripts principales según tus necesidades:
+El servicio se ejecuta a través del script `src/cascos_service/cli.py`. Puedes ejecutarlo directamente:
 
-- **Ejecución estándar (muestra imagen y detalles):**
+```bash
+python src/cascos_service/cli.py [OPCIONES]
+```
 
-    ```bash
-    python main.py
-    ```
+**Opciones disponibles:**
 
-- **Ejecución optimizada para Apple MPS (si aplica):**
+- `--image RUTA`: Especifica la ruta a la imagen a procesar (por defecto usa `data/images/casco4.jpg`).
+- `--model RUTA`: Especifica la ruta al modelo `.pt` (por defecto usa `data/models/hemletYoloV8_100epochs.pt`).
+- `--conf UMBRAL`: Define el umbral de confianza para las detecciones (por defecto `0.25`).
+- `--device {auto,cpu,mps,cuda}`: Selecciona el dispositivo de cómputo (por defecto `auto`).
+- `--mode {full,demo}`: Controla la salida.
+  - `full`: Muestra la imagen anotada y los detalles de detección en consola (por defecto).
+  - `demo`: Solo muestra la imagen anotada.
+- `--no-save`: Evita que se guarden los resultados (imagen anotada) en la carpeta `runs/`.
 
-    ```bash
-    python main_apple.py
-    ```
+**Ejemplo (usando valores por defecto):**
 
-- **Demostración rápida (solo muestra imagen):**
+```bash
+python src/cascos_service/cli.py
+```
 
-    ```bash
-    python main_demo.py
-    ```
+**Ejemplo (especificando imagen y usando modo demo):**
 
-Los scripts buscarán el modelo en `data/models/` y la imagen en `data/images/`. Las imágenes resultantes con las detecciones se guardarán automáticamente en una carpeta `runs/detect/`.
+```bash
+python src/cascos_service/cli.py --image ruta/a/otra/imagen.jpg --mode demo
+```
 
 ## 🧪 Pruebas
 
-Para verificar que el modelo se carga correctamente:
+Para ejecutar las pruebas automatizadas (ubicadas en la carpeta `tests/`), necesitas tener `pytest` instalado (`pip install pytest`).
+
+Desde la raíz del proyecto, ejecuta:
 
 ```bash
-python test.py
+pytest
 ```
 
-Deberías ver un mensaje "Carga del modelo: OK".
+Esto descubrirá y ejecutará automáticamente las pruebas definidas en `tests/test_detection.py`, verificando la carga del modelo y la funcionalidad básica de detección.
